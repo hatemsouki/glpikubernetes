@@ -1,0 +1,57 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mariadb-glpi
+  labels:
+    app: glpi
+spec:
+  ports:
+  - port: 3306
+  selector:
+    app: mariadb-glpi
+  clusterIP: None
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mariadb-glpi-deployment
+  labels:
+    app: glpi
+spec:
+  selector:
+    matchLabels:
+      app: mariadb-glpi
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: mariadb-glpi
+    spec:
+      containers:
+      - image: mysql:5.7
+        name: mariadb-glpi
+        env:
+        - name: MYSQL_DATABASE
+          value: "glpi"
+        - name: MYSQL_ROOT_PASSWORD
+          value: "root"
+        - name: MYSQL_USER
+          value: "glpi"
+        - name: MYSQL_PASSWORD
+          value: "glpi"
+        ports:
+        - containerPort: 3306
+          name: mariadb-glpi        
+		volumeMounts:
+        - name: mariadb-glpi-persistent-storage
+          mountPath: /var/lib/mysql
+      volumes:
+      - name: mariadb-glpi-persistent-storage
+        persistentVolumeClaim:
+          claimName: mariadb-pv-claim
+		
+		
+		
